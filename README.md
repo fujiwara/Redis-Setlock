@@ -8,6 +8,7 @@ Redis::Setlock - Like the setlock command using Redis.
 
     --redis (Default: 127.0.0.1:6379): redis-host:redis-port
     --expires (Default: 86400): The lock will be auto-released after the expire time is reached.
+    --keep: Keep the lock after invoked command exited.
     -n: No delay. If KEY is locked by another process, redis-setlock gives up.
     -N: (Default.) Delay. If KEY is locked by another process, redis-setlock waits until it can obtain a new lock.
     -x: If KEY is locked, redis-setlock exits zero.
