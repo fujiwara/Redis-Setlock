@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Redis::Setlock;
+
+Redis::Setlock->run(@ARGV);
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+redis-setlock
+
+=head1 SYNOPSIS
+
+    $ redis-setlock [-nNxX] KEY program [ arg ... ]
+
+    --redis (Default: 127.0.0.1:6379): redis-host:redis-port
+    --expires (Default: 86400): The lock will be auto-released after the expire time is reached.
+    -n: No delay. If KEY is locked by another process, redis-setlock gives up.
+    -N: (Default.) Delay. If KEY is locked by another process, redis-setlock waits until it can obtain a new lock.
+    -x: If KEY is locked, redis-setlock exits zero.
+    -X: (Default.) If KEY is locked, redis-setlock prints an error message and exits nonzero.
+
+=head1 DESCRIPTION
+
+Redis::Setlock is ...
+
+=head1 LICENSE
+
+Copyright (C) FUJIWARA Shunichiro.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=head1 AUTHOR
+
+FUJIWARA Shunichiro E<lt>fujiwara.shunichiro@gmail.comE<gt>
+
+=cut
+
