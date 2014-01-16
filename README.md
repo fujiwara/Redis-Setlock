@@ -16,7 +16,7 @@ Redis::Setlock - Like the setlock command using Redis.
 
 # DESCRIPTION
 
-Redis::Setlock is ...
+Redis::Setlock is a like the setlock command using Redis.
 
 # LICENSE
 

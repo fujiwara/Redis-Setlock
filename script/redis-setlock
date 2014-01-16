@@ -25,20 +25,5 @@ redis-setlock
     -x: If KEY is locked, redis-setlock exits zero.
     -X: (Default.) If KEY is locked, redis-setlock prints an error message and exits nonzero.
 
-=head1 DESCRIPTION
-
-Redis::Setlock is ...
-
-=head1 LICENSE
-
-Copyright (C) FUJIWARA Shunichiro.
-
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=head1 AUTHOR
-
-FUJIWARA Shunichiro E<lt>fujiwara.shunichiro@gmail.comE<gt>
-
 =cut
 

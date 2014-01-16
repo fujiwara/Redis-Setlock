@@ -130,7 +130,7 @@ Redis::Setlock - Like the setlock command using Redis.
 
 =head1 DESCRIPTION
 
-Redis::Setlock is ...
+Redis::Setlock is a like the setlock command using Redis.
 
 =head1 LICENSE
 
