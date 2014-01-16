@@ -6,14 +6,16 @@ use Redis;
 use Getopt::Long ();
 use Pod::Usage;
 use Log::Minimal;
+use Try::Tiny;
 
 our $VERSION            = "0.01";
 our $DEFAULT_EXPIRES    = 86400;
 our $LOCK_WAIT_INTERVAL = 1;
 
 use constant {
-    EXIT_CODE_REDIS_UNSUPPORTED_VERSION => 1,
-    EXIT_CODE_CANNOT_GET_LOCK           => 2,
+    EXIT_CODE_REDIS_DEAD                => 1,
+    EXIT_CODE_REDIS_UNSUPPORTED_VERSION => 2,
+    EXIT_CODE_CANNOT_GET_LOCK           => 3,
 };
 
 sub parse_options {
@@ -47,10 +49,17 @@ sub run {
 
     pod2usage() if !defined $key || @argv == 0;
 
-    my $redis = Redis->new(
-        server    => $opt->{redis},
-        reconnect => 300,
-    );
+    my $redis = try {
+        Redis->new(
+            server    => $opt->{redis},
+            reconnect => $opt->{wait} ? $DEFAULT_EXPIRES : 0,
+        );
+    } catch {
+        my $e = $_;
+        critf "Redis server seems down: %s", $e;
+        exit EXIT_CODE_REDIS_DEAD;
+    };
+
     my $version = $redis->info->{redis_version};
     debugf "Redis version is: %s", $version;
     my ($major, $minor, $rev) = split /\./, $version;
