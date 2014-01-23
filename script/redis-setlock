@@ -3,11 +3,14 @@ use strict;
 use warnings;
 use Redis::Setlock;
 
-Redis::Setlock->run(@ARGV);
+my $code = Redis::Setlock->run(@ARGV);
+exit $code;
 
 __END__
 
 =encoding utf-8
+
+=for stopwords setlock
 
 =head1 NAME
 
