@@ -1,5 +1,7 @@
 package t::Util;
 
+use strict;
+use warnings;
 use Test::RedisServer;
 use Net::EmptyPort qw/ empty_port check_port /;
 use Carp;
