@@ -3,7 +3,7 @@ package t::Util;
 use strict;
 use warnings;
 use Test::RedisServer;
-use Net::EmptyPort qw/ empty_port check_port /;
+use Net::EmptyPort qw/ empty_port wait_port /;
 use Carp;
 use Test::More;
 use Time::HiRes qw/ sleep gettimeofday tv_interval /;
@@ -23,11 +23,8 @@ sub redis_server {
             save => "",
         })
     } or plan skip_all => 'redis-server is required to this test';
-    for ( 1 .. 100 ) {
-        sleep 0.1;
-        return $redis_server if check_port($port);
-    }
-    fail "Can't connect to redis-server.";
+    wait_port($port, 10);
+    return $redis_server;
 }
 
 sub timer(&) {
