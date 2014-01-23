@@ -38,7 +38,7 @@ sub timer(&) {
 
 sub redis_setlock {
     my @args = @_;
-    timer { system($Perl, $Command, @args) };
+    timer { Redis::Setlock->run(@args) };
 }
 
 1;

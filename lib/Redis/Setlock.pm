@@ -40,6 +40,7 @@ sub parse_options {
     /) or pod2usage;
     $opt->{wait}      = 0 if $opt->{n};  # no lock
     $opt->{exit_code} = 0 if $opt->{x};  # exit code 0
+    $opt->{expires}   = $DEFAULT_EXPIRES unless defined $opt->{expires};
 
     return ($opt, @argv);
 }
@@ -59,11 +60,12 @@ sub run {
     my $r = try {
         Redis->new(
             server    => $opt->{redis},
-            reconnect => $opt->{wait} ? $DEFAULT_EXPIRES : 0,
+            reconnect => $opt->{wait} ? $opt->{expires} : 0,
         );
     } catch {
         my $e = $_;
-        critf "Redis server seems down: %s", $e;
+        my $error = (split(/\n/, $e))[0];
+        critf "Redis server seems down: %s", $error;
         return EXIT_CODE_REDIS_DEAD;
     };
     my $redis;
@@ -88,7 +90,7 @@ sub run {
         return EXIT_CODE_REDIS_UNSUPPORTED_VERSION;
     }
 
-    my $expires = $opt->{expires} || $DEFAULT_EXPIRES;
+    my $expires = $opt->{expires};
     my $locked;
     while (1) {
         my @command = ($key, time, "EX", $expires, "NX");

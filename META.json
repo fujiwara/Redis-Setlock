@@ -46,13 +46,17 @@
             "Log::Minimal" : "0",
             "Pod::Usage" : "0",
             "Redis" : "0",
+            "Time::HiRes" : "0",
             "Try::Tiny" : "0",
             "perl" : "5.008001"
          }
       },
       "test" : {
          "requires" : {
-            "Test::More" : "0.98"
+            "Net::EmptyPort" : "0",
+            "Test::More" : "0.98",
+            "Test::RedisServer" : "0",
+            "Test::SharedFork" : "0"
          }
       }
    },

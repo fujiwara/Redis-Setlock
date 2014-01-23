@@ -6,9 +6,9 @@ use Redis::Setlock;
 use Time::HiRes qw/ gettimeofday tv_interval /;
 use t::Util qw/ redis_server redis_setlock /;
 
+my $lock_key     = join("-", time, $$, rand());
 my $redis_server = redis_server();
 my $port         = $redis_server->conf->{port};
-my $lock_key     = join("-", time, $$, rand());
 
 subtest "not locked exit 0" => sub {
     my ($code, $elapsed) = redis_setlock(
@@ -87,5 +87,31 @@ subtest "nodelay with exit 0" => sub {
     ok $code == 0, "got lock and exit with $code == 0";
     ok $elapsed < 1, "elapsed $elapsed < 1 sec (= no delay)";
 };
+
+undef $redis_server; # stop redis-server
+
+subtest "can't connect to redis (no delay exit non zero)" => sub {
+    my ($code, $elapsed) = redis_setlock(
+        "--redis" => "127.0.0.1:$port",
+        "-n",
+        $lock_key,
+        "perl", "-e", "exit 0",
+    );
+    ok $code != 0,   "exit with $code != 0";
+    ok $elapsed < 1, "elapsed $elapsed < 1";
+};
+
+subtest "can't connect to redis (delay 3 sec exit non zero)" => sub {
+    my ($code, $elapsed) = redis_setlock(
+        "--redis"   => "127.0.0.1:$port",
+        "--expires" => 3,
+        $lock_key,
+        "perl", "-e", "exit 0",
+    );
+    ok $code != 0,   "exit with $code != 0";
+    ok $elapsed > 3, "elapsed $elapsed > 3";
+    ok $elapsed < 5, "elapsed $elapsed < 5";
+};
+
 
 done_testing;
