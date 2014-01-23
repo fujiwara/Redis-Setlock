@@ -7,6 +7,7 @@ use Getopt::Long ();
 use Pod::Usage;
 use Log::Minimal;
 use Try::Tiny;
+use Time::HiRes qw/ sleep /;
 
 our $VERSION            = "0.01";
 our $DEFAULT_EXPIRES    = 86400;
@@ -45,11 +46,17 @@ sub parse_options {
 
 sub run {
     my $class = shift;
+
+    local $Log::Minimal::PRINT = sub {
+        my ( $time, $type, $message, $trace) = @_;
+        warn "$time $$ $type $message\n";
+    };
+
     my ($opt, $key, @argv) = $class->parse_options(@_);
 
     pod2usage() if !defined $key || @argv == 0;
 
-    my $redis = try {
+    my $r = try {
         Redis->new(
             server    => $opt->{redis},
             reconnect => $opt->{wait} ? $DEFAULT_EXPIRES : 0,
@@ -57,8 +64,15 @@ sub run {
     } catch {
         my $e = $_;
         critf "Redis server seems down: %s", $e;
-        exit EXIT_CODE_REDIS_DEAD;
+        return EXIT_CODE_REDIS_DEAD;
     };
+    my $redis;
+    if (ref $r) {
+        $redis = $r;
+    }
+    else {
+        return $r;
+    }
 
     my $version = $redis->info->{redis_version};
     debugf "Redis version is: %s", $version;
@@ -71,7 +85,7 @@ sub run {
     }
     else {
         critf "required Redis server version >= 2.6.12. current server version is %s", $version;
-        exit EXIT_CODE_REDIS_UNSUPPORTED_VERSION;
+        return EXIT_CODE_REDIS_UNSUPPORTED_VERSION;
     }
 
     my $expires = $opt->{expires} || $DEFAULT_EXPIRES;
@@ -85,7 +99,7 @@ sub run {
             debugf "Got lock: %s", $key;
             last;
         }
-        debugf "result: %s", $r;
+        debugf "result: %s", defined $r ? $r : "";
         if (!$opt->{wait}) { # no wait by option n
             debugf "No wait mode. exit";
             last;
@@ -96,7 +110,8 @@ sub run {
     if ($locked) {
         debugf "invoking command: @argv";
         my $code = system @argv;
-        debugf "child exit with code: %s", $code >> 8;
+        $code = $code >> 8;       # to raw exit code
+        debugf "child exit with code: %s", $code;
         if ($opt->{keep}) {
             debugf "Keep lock key %s", $key;
         }
@@ -104,15 +119,15 @@ sub run {
             debugf "Release lock key %s", $key;
             $redis->del($key);
         }
-        exit $code >> 8;
+        return $code;
     }
     else {
         # can't get lock
         if ($opt->{exit_code}) {
             critf "Can't get lock key %s. died.", $key;
-            exit $opt->{exit_code};
+            return $opt->{exit_code};
         }
-        exit 0; # by option x
+        return 0; # by option x
     }
 }
 
@@ -120,6 +135,8 @@ sub run {
 __END__
 
 =encoding utf-8
+
+=for stopwords setlock
 
 =head1 NAME
 
