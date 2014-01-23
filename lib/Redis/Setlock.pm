@@ -11,7 +11,6 @@ use Time::HiRes qw/ sleep /;
 
 our $VERSION            = "0.01";
 our $DEFAULT_EXPIRES    = 86400;
-our $LOCK_WAIT_INTERVAL = 1;
 
 use constant {
     EXIT_CODE_REDIS_DEAD                => 1,
@@ -102,18 +101,18 @@ sub run {
         my @command = ($key, $token, "EX", $expires, "NX");
         debugf "redis: set @command";
         my $r = $redis->set(@command);
-        if ($r) {
+        if (defined $r) {
             $locked = 1;
-            debugf "Got lock: %s", $key;
+            debugf "locked: %s", $key;
             last;
         }
-        debugf "result: %s", defined $r ? $r : "";
         if (!$opt->{wait}) { # no wait by option n
             debugf "No wait mode. exit";
             last;
         }
-        debugf "Can't get lock. retry after %d sec.", $LOCK_WAIT_INTERVAL;
-        sleep $LOCK_WAIT_INTERVAL;
+        my $sleep = rand();
+        debugf "unable to lock. retry after %f sec.", $sleep;
+        sleep $sleep;
     }
     if ($locked) {
         debugf "invoking command: @argv";
