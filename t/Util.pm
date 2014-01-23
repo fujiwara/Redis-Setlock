@@ -37,7 +37,33 @@ sub timer(&) {
 
 sub redis_setlock {
     my @args = @_;
-    timer { Redis::Setlock->run(@args) };
+
+    if ( $ENV{SETLOCK} ) {
+        @args = trim_args(@args);
+        timer { system("setlock", @args) };
+    }
+    elsif ( $ENV{COMMAND} ) {
+        timer { system($Perl, $Command, @args) };
+    }
+    else {
+        timer { Redis::Setlock->run(@args) };
+    }
+}
+
+sub trim_args {
+    my @args = @_;
+    my @result;
+    while (my $arg = shift @args) {
+        if ( $arg eq "--redis" || $arg eq "--expires" ) {
+            shift @args;
+            next;
+        }
+        elsif ( $arg eq "--keep" ) {
+            next;
+        }
+        push @result, $arg;
+    }
+    return @result;
 }
 
 1;

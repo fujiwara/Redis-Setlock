@@ -30,6 +30,11 @@ subtest "not locked exit non zero" => sub {
     ok $elapsed < 1, "elapsed $elapsed < 1 sec (= not locked)";
 };
 
+if ($ENV{SETLOCK} ) {
+    done_testing;
+    exit;
+}
+
 subtest "set expires and keep lock" => sub {
     my ($code, $elapsed) = redis_setlock(
         "--redis"   => "127.0.0.1:$port",
@@ -112,6 +117,5 @@ subtest "can't connect to redis (delay 3 sec exit non zero)" => sub {
     ok $elapsed > 3, "elapsed $elapsed > 3";
     ok $elapsed < 5, "elapsed $elapsed < 5";
 };
-
 
 done_testing;

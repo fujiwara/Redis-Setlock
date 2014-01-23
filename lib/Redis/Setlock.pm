@@ -132,7 +132,7 @@ sub run {
     else {
         # can't get lock
         if ($opt->{exit_code}) {
-            critf "Can't get lock key %s. died.", $key;
+            critf "unable to lock %s.", $key;
             return $opt->{exit_code};
         }
         return 0; # by option x
