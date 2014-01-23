@@ -67,24 +67,19 @@ sub run {
 
     pod2usage() if !defined $key || @argv == 0;
 
-    my $r = try {
-        Redis->new(
+    my $redis;
+    try {
+        $redis = Redis->new(
             server    => $opt->{redis},
             reconnect => $opt->{wait} ? $opt->{expires} : 0,
         );
-    } catch {
+    }
+    catch {
         my $e = $_;
         my $error = (split(/\n/, $e))[0];
         critf "Redis server seems down: %s", $error;
-        return EXIT_CODE_REDIS_DEAD;
-    };
-    my $redis;
-    if (ref $r) {
-        $redis = $r;
-    }
-    else {
-        return $r;
-    }
+        return;
+    } or return EXIT_CODE_REDIS_DEAD;
 
     my $version = $redis->info->{redis_version};
     debugf "Redis version is: %s", $version;
