@@ -19,6 +19,16 @@ use constant {
     EXIT_CODE_CANNOT_GET_LOCK           => 3,
 };
 
+use constant UNLOCK_LUA_SCRIPT => <<'END_OF_SCRIPT'
+if redis.call("get",KEYS[1]) == ARGV[1]
+then
+    return redis.call("del",KEYS[1])
+else
+    return 0
+end
+END_OF_SCRIPT
+;
+
 sub parse_options {
     my ($class, @argv) = @_;
 
@@ -92,8 +102,9 @@ sub run {
 
     my $expires = $opt->{expires};
     my $locked;
+    my $token = _token();
     while (1) {
-        my @command = ($key, time, "EX", $expires, "NX");
+        my @command = ($key, $token, "EX", $expires, "NX");
         debugf "redis: set @command";
         my $r = $redis->set(@command);
         if ($r) {
@@ -119,7 +130,7 @@ sub run {
         }
         else {
             debugf "Release lock key %s", $key;
-            $redis->del($key);
+            $redis->eval(UNLOCK_LUA_SCRIPT, 1, $key, $token);
         }
         return $code;
     }
@@ -131,6 +142,10 @@ sub run {
         }
         return 0; # by option x
     }
+}
+
+sub _token {
+    Time::HiRes::time() . rand();
 }
 
 1;
