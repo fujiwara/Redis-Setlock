@@ -43,6 +43,10 @@
       },
       "runtime" : {
          "requires" : {
+            "Log::Minimal" : "0",
+            "Pod::Usage" : "0",
+            "Redis" : "0",
+            "Try::Tiny" : "0",
             "perl" : "5.008001"
          }
       },
@@ -53,5 +57,16 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/fujiwara/Redis-Setlock/issues"
+      },
+      "homepage" : "https://github.com/fujiwara/Redis-Setlock",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/fujiwara/Redis-Setlock.git",
+         "web" : "https://github.com/fujiwara/Redis-Setlock"
+      }
+   },
    "version" : "0.01"
 }
