@@ -18,6 +18,10 @@ Redis::Setlock - Like the setlock command using Redis.
 
 Redis::Setlock is a like the setlock command using Redis.
 
+# REQUIREMENTS
+
+Redis Server >= 2.6.12.
+
 # LICENSE
 
 Copyright (C) FUJIWARA Shunichiro.
