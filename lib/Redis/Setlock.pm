@@ -162,7 +162,20 @@ sub release_lock {
 sub invoke_command {
     my @command = @_;
     debugf "invoking command: @command";
-    my $code = system @command;
+    if (my $pid = fork()) {
+        local $SIG{CHLD} = sub { };
+        local $SIG{TERM} = $SIG{HUP} = $SIG{INT} = sub {
+            my $signal = shift;
+            debugf "got %s; kill %s, %d", $signal, $signal, $pid;
+            kill $signal, $pid;
+        };
+        wait;
+    }
+    else {
+        exec @command;
+        die "???";
+    }
+    my $code = $?;
     $code = $code >> 8;       # to raw exit code
     debugf "child exit with code: %s", $code;
     return $code;
