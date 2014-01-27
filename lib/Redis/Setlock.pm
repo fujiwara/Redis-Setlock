@@ -46,7 +46,13 @@ sub parse_options {
         N
         x
         X
+        version
     /) or pod2usage;
+
+    if ($opt->{version}) {
+        print STDERR "version: $VERSION\n";
+        exit 0;
+    }
     $opt->{wait}      = 0 if $opt->{n};  # no delay
     $opt->{exit_code} = 0 if $opt->{x};  # exit code 0
     $opt->{expires}   = $DEFAULT_EXPIRES unless defined $opt->{expires};
