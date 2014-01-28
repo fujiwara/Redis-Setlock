@@ -10,8 +10,9 @@ use Try::Tiny;
 use Time::HiRes qw/ sleep /;
 use Carp;
 
-our $VERSION            = "0.01";
-our $DEFAULT_EXPIRES    = 86400;
+our $VERSION         = "0.01";
+our $DEFAULT_EXPIRES = 86400;
+our $RETRY_INTERVAL  = 0.5;
 
 use constant {
     EXIT_CODE_ERROR => 111,
@@ -97,6 +98,7 @@ sub connect_to_redis_server {
         Redis->new(
             server    => $opt->{redis},
             reconnect => $opt->{wait} ? $opt->{expires} : 0,
+            every     => $RETRY_INTERVAL * 1000, # to msec
         );
     }
     catch {
@@ -141,9 +143,8 @@ sub try_get_lock {
             last GET_LOCK;
         }
         else {
-            my $sleep = rand();
-            debugf "unable to lock. retry after %f sec.", $sleep;
-            sleep $sleep;
+            debugf "unable to lock. retry after %f sec.", $RETRY_INTERVAL;
+            sleep $RETRY_INTERVAL;
         }
     }
     return $token if $got_lock;
