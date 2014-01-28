@@ -11,9 +11,6 @@ use Time::HiRes qw/ sleep gettimeofday tv_interval /;
 use Exporter 'import';
 our @EXPORT_OK = qw/ redis_server redis_setlock /;
 
-my $Perl    = $^X;
-my $Command = "script/redis-setlock";
-
 sub redis_server {
     my $redis_server;
     my $port = empty_port();
@@ -38,15 +35,42 @@ sub timer(&) {
 sub redis_setlock {
     my @args = @_;
 
-    if ( $ENV{SETLOCK} ) {
-        @args = trim_args(@args);
-        timer { system("setlock", @args) };
-    }
-    elsif ( $ENV{COMMAND} ) {
-        timer { system($Perl, $Command, @args) };
+    if ($ENV{COMMAND}) {
+        @args = trim_args(@args) if $ENV{COMMAND} eq "setlock";
+        timer { system_with_pass_signal($ENV{COMMAND}, @args) };
     }
     else {
         timer { Redis::Setlock->run(@args) };
+    }
+}
+
+sub system_with_pass_signal {
+    my @command = @_;
+    if (my $pid = fork()) {
+        warn "system_with_pass_signal parent";
+        local $SIG{CHLD} = sub { };
+        local $SIG{TERM} = $SIG{HUP} = $SIG{INT} = $SIG{QUIT} = sub {
+            my $signal = shift;
+            warn "Got signal $signal";
+            kill $signal, $pid;
+        };
+        wait;
+    }
+    else {
+        warn "system_with_pass_signal child @command";
+        exec @command;
+        die "???";
+    }
+    my $code = $?;
+    if ($code == -1) {
+        return $code;
+    }
+    elsif ($code & 127) {
+        return $code;
+    }
+    else {
+        $code = $code >> 8; # to raw exit code
+        return $code;
     }
 }
 

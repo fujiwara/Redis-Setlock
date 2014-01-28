@@ -8,14 +8,13 @@ use Pod::Usage;
 use Log::Minimal;
 use Try::Tiny;
 use Time::HiRes qw/ sleep /;
+use Carp;
 
 our $VERSION            = "0.01";
 our $DEFAULT_EXPIRES    = 86400;
 
 use constant {
-    EXIT_CODE_REDIS_DEAD                => 1,
-    EXIT_CODE_REDIS_UNSUPPORTED_VERSION => 2,
-    EXIT_CODE_CANNOT_GET_LOCK           => 3,
+    EXIT_CODE_ERROR => 111,
 };
 
 use constant UNLOCK_LUA_SCRIPT => <<'END_OF_SCRIPT'
@@ -36,7 +35,7 @@ sub parse_options {
     );
     my $opt = {
         wait      => 1,
-        exit_code => EXIT_CODE_CANNOT_GET_LOCK,
+        exit_code => EXIT_CODE_ERROR,
     };
     $p->getoptionsfromarray(\@argv, $opt, qw/
         redis=s
@@ -70,14 +69,15 @@ sub run {
     pod2usage() if !defined $key || @command == 0;
 
     my $redis = connect_to_redis_server($opt)
-        or return EXIT_CODE_REDIS_DEAD;
+        or return EXIT_CODE_ERROR;
 
     validate_redis_version($redis)
-        or return EXIT_CODE_REDIS_UNSUPPORTED_VERSION;
+        or return EXIT_CODE_ERROR;
 
     if ( my $token = try_get_lock($redis, $opt, $key) ) {
         my $code = invoke_command(@command);
         release_lock($redis, $opt, $key, $token);
+        debugf "exit with code %d", $code;
         return $code;
     }
     else {
@@ -86,6 +86,7 @@ sub run {
             critf "unable to lock %s.", $key;
             return $opt->{exit_code};
         }
+        debugf "exit with code 0";
         return 0; # by option x
     }
 }
@@ -164,21 +165,31 @@ sub invoke_command {
     debugf "invoking command: @command";
     if (my $pid = fork()) {
         local $SIG{CHLD} = sub { };
-        local $SIG{TERM} = $SIG{HUP} = $SIG{INT} = sub {
+        local $SIG{TERM} = $SIG{HUP} = $SIG{INT} = $SIG{QUIT} = sub {
             my $signal = shift;
-            debugf "got %s; kill %s, %d", $signal, $signal, $pid;
+            warnf "Got signal %s", $signal;
             kill $signal, $pid;
         };
         wait;
     }
     else {
         exec @command;
-        die "???";
+        die;
     }
     my $code = $?;
-    $code = $code >> 8;       # to raw exit code
-    debugf "child exit with code: %s", $code;
-    return $code;
+    if ($code == -1) {
+        critf "faildto execute: %s", $!;
+        return $code;
+    }
+    elsif ($code & 127) {
+        debugf "child died with signal %d", $code & 127;
+        return $code;
+    }
+    else {
+        $code = $code >> 8;       # to raw exit code
+        debugf "child exit with code: %s", $code;
+        return $code;
+    }
 }
 
 sub log_minimal_print {

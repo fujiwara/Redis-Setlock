@@ -3,8 +3,7 @@ use strict;
 use warnings;
 use Redis::Setlock;
 
-my $code = Redis::Setlock->run(@ARGV);
-exit $code;
+exit Redis::Setlock->run(@ARGV);
 
 __END__
 
