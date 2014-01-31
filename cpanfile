@@ -4,6 +4,7 @@ requires 'Log::Minimal';
 requires 'Pod::Usage';
 requires 'Try::Tiny';
 requires 'Time::HiRes';
+requires 'Guard';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';

@@ -9,6 +9,7 @@ use Log::Minimal;
 use Try::Tiny;
 use Time::HiRes qw/ sleep /;
 use Carp;
+use Guard ();
 
 our $VERSION         = "0.01";
 our $DEFAULT_EXPIRES = 86400;
@@ -58,6 +59,21 @@ sub parse_options {
     $opt->{expires}   = $DEFAULT_EXPIRES unless defined $opt->{expires};
 
     return ($opt, @argv);
+}
+
+sub lock_guard {
+    my $class = shift;
+    my ($redis, $key, $expires) = @_;
+
+    my $opt = {
+        wait    => 0,
+        expires => defined $expires ? $expires : $DEFAULT_EXPIRES,
+    };
+    my $token = try_get_lock($redis, $opt, $key)
+        or return;
+    return Guard::guard {
+        release_lock($redis, $opt, $key, $token);
+    };
 }
 
 sub run {
@@ -224,6 +240,22 @@ Redis::Setlock - Like the setlock command using Redis.
     -N: (Default.) Delay. If KEY is locked by another process, redis-setlock waits until it can obtain a new lock.
     -x: If KEY is locked, redis-setlock exits zero.
     -X: (Default.) If KEY is locked, redis-setlock prints an error message and exits nonzero.
+
+
+Using in your perl code.
+
+   use Redis::Setlock;
+   use Redis;  # or Redis::Fast
+   my $redis = Redis->new( server => 'redis.example.com:6379' );
+   if ( my $guard = Redis::Setlock->lock_gurad($redis, "key", 60) ) {
+      # got a lock!
+      ...
+      # unlock at guard destroyed.
+   }
+   else {
+      # couldnot get lock
+   }
+
 
 =head1 DESCRIPTION
 

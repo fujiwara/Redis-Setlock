@@ -43,6 +43,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Guard" : "0",
             "Log::Minimal" : "0",
             "Pod::Usage" : "0",
             "Redis" : "0",
