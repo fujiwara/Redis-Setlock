@@ -1,5 +1,5 @@
 requires 'perl', '5.008001';
-requires 'Redis';
+requires 'Redis', '1.952';
 requires 'Log::Minimal';
 requires 'Pod::Usage';
 requires 'Try::Tiny';

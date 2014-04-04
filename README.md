@@ -14,8 +14,6 @@ Redis::Setlock - Like the setlock command using Redis.
     -x: If KEY is locked, redis-setlock exits zero.
     -X: (Default.) If KEY is locked, redis-setlock prints an error message and exits nonzero.
 
-
-
 Using in your perl code.
 
     use Redis::Setlock;
@@ -29,8 +27,6 @@ Using in your perl code.
     else {
        # couldnot get lock
     }
-
-
 
 # DESCRIPTION
 
