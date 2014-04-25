@@ -2,6 +2,10 @@ Revision history for Perl extension Redis-Setlock
 
 {{$NEXT}}
 
+0.05 2014-04-25T12:52:58Z
+
+    - Changes test only. without redis server installed.
+
 0.04 2014-04-04T08:58:24Z
 
     - requires Redis 1.952 to parse output from info command Redis >= 2.6.12
