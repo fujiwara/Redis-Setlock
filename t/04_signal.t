@@ -1,7 +1,7 @@
 # -*- mode:perl -*-
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More;
 use Test::SharedFork;
 use Redis::Setlock;
 use t::Util qw/ redis_server redis_setlock /;
@@ -29,3 +29,4 @@ else {
     exit;
 }
 
+done_testing;
