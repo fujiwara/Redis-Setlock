@@ -10,7 +10,7 @@ requires 'Getopt::Long', '2.42';
 on 'test' => sub {
     requires 'Test::More', '0.98';
     requires 'Test::RedisServer';
-    requires 'Net::EmptyPort';
+    requires 'Test::TCP', '2.00';
     requires 'Test::SharedFork';
 };
 

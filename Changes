@@ -2,6 +2,10 @@ Revision history for Perl extension Redis-Setlock
 
 {{$NEXT}}
 
+0.06 2014-05-01T02:43:44Z
+
+    - Depends on Test::TCP 2.00. Tests failed when use old Test::TCP.
+
 0.05 2014-04-25T12:52:58Z
 
     - Changes test only. without redis server installed.

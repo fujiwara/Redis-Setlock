@@ -56,10 +56,10 @@
       },
       "test" : {
          "requires" : {
-            "Net::EmptyPort" : "0",
             "Test::More" : "0.98",
             "Test::RedisServer" : "0",
-            "Test::SharedFork" : "0"
+            "Test::SharedFork" : "0",
+            "Test::TCP" : "2.00"
          }
       }
    },
@@ -75,5 +75,5 @@
          "web" : "https://github.com/fujiwara/Redis-Setlock"
       }
    },
-   "version" : "0.05"
+   "version" : "0.06"
 }
