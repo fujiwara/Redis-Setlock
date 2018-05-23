@@ -22,7 +22,8 @@ use constant {
 use constant UNLOCK_LUA_SCRIPT => <<'END_OF_SCRIPT'
 if redis.call("get",KEYS[1]) == ARGV[1]
 then
-    return redis.call("del",KEYS[1])
+    redis.call("del",KEYS[1])
+    return redis.call("lpush","wait:"..KEYS[1],ARGV[1])
 else
     return 0
 end
@@ -158,10 +159,8 @@ sub try_get_lock {
             debugf "no delay mode. exit";
             last GET_LOCK;
         }
-        else {
-            debugf "unable to lock. retry after %f sec.", $RETRY_INTERVAL;
-            sleep $RETRY_INTERVAL;
-        }
+        debugf "unable to lock. waiting for release";
+        $redis->blpop("wait:$key", $opt->{expires});
     }
     return $token if $got_lock;
 }
