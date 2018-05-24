@@ -80,10 +80,10 @@ sub parse_options {
 
 sub lock_guard {
     my $class = shift;
-    my ($redis, $key, $expires) = @_;
+    my ($redis, $key, $expires, $wait) = @_;
 
     my $opt = {
-        wait    => 0,
+        wait    => $wait,
         expires => defined $expires ? $expires : $DEFAULT_EXPIRES,
     };
     my $token = try_get_lock($redis, $opt, $key)
@@ -289,6 +289,22 @@ Redis::Setlock is a like the setlock command using Redis.
 =head1 REQUIREMENTS
 
 Redis Server >= 2.6.12.
+
+=head1 METHODS
+
+=over 4
+
+=item B<new>(%args)
+
+=item B<lock_guard>($redis, $lock_name, $expires, $blocking)
+
+Creates Guard::guard object when the lock got.
+
+The lock is released at the guard is destroyed.
+
+If $blocking is true, lock_guard will be blocked until getting a lock. Otherwise returns immedetly when the lock is held by others .
+
+=back
 
 =head1 LICENSE
 
