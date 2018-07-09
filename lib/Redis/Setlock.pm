@@ -9,6 +9,7 @@ use Log::Minimal;
 use Try::Tiny;
 use Time::HiRes qw/ sleep /;
 use Carp;
+use Digest::SHA qw/ sha1_hex /;
 use Guard ();
 
 our $VERSION              = "0.11";
@@ -192,16 +193,24 @@ sub release_lock {
     my ($redis, $opt, $key, $token) = @_;
     if ($opt->{keep}) {
         debugf "Keep lock key %s", $key;
+        return;
     }
-    else {
-        debugf "Release lock key %s", $key;
-        if ($WAIT_QUEUE) {
-            $redis->eval(BLOCKING_UNLOCK_LUA_SCRIPT, 1, $key, $token);
+
+    debugf "Release lock key %s", $key;
+    my $script = $WAIT_QUEUE ? BLOCKING_UNLOCK_LUA_SCRIPT : UNLOCK_LUA_SCRIPT;
+    my $sha1   = sha1_hex($script);
+    try {
+        $redis->evalsha($sha1, 1, $key, $token);
+    }
+    catch {
+        my $e = $_;
+        if ($e =~ /NOSCRIPT/) {
+            $redis->eval($script, 1, $key, $token);
         }
         else {
-            $redis->eval(UNLOCK_LUA_SCRIPT, 1, $key, $token);
+            croak $e;
         }
-    }
+    };
 }
 
 sub invoke_command {
