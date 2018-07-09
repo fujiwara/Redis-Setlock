@@ -33,9 +33,11 @@ END_OF_SCRIPT
 
 use constant BLOCKING_UNLOCK_LUA_SCRIPT_TMPL => <<'END_OF_SCRIPT'
 if redis.call("get",KEYS[1]) == ARGV[1]
-then
-    redis.call("del",KEYS[1],KEYS[1].."%s")
-    return redis.call("lpush",KEYS[1].."%s",ARGV[1])
+    then
+    local q = KEYS[1].."%s"
+    redis.call("del", KEYS[1])
+    redis.call("expire", q, 60)
+    return redis.call("lpush", q, ARGV[1])
 else
     return 0
 end
@@ -43,7 +45,7 @@ END_OF_SCRIPT
     ;
 
 sub BLOCKING_UNLOCK_LUA_SCRIPT {
-    sprintf BLOCKING_UNLOCK_LUA_SCRIPT_TMPL, $BLOCKING_KEY_POSTFIX, $BLOCKING_KEY_POSTFIX;
+    sprintf BLOCKING_UNLOCK_LUA_SCRIPT_TMPL, $BLOCKING_KEY_POSTFIX;
 }
 
 sub parse_options {
