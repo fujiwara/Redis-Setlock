@@ -12,11 +12,11 @@ use Carp;
 use Digest::SHA qw/ sha1_hex /;
 use Guard ();
 
-our $VERSION              = "0.12";
-our $DEFAULT_EXPIRES      = 86400;
-our $RETRY_INTERVAL       = 0.5;
-our $BLOCKING_KEY_POSTFIX = ":wait";
-our $WAIT_QUEUE           = 0;
+our $VERSION                  = "0.12";
+our $DEFAULT_EXPIRES          = 86400;
+our $RETRY_INTERVAL           = 0.5;
+our $BLOCKING_KEY_POSTFIX     = ":wait";
+our $WAIT_QUEUE               = 0;
 our $WARN_LOCK_TIME_THRESHOLD = 0;
 
 use constant {
