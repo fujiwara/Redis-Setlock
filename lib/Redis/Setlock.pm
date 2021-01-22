@@ -326,6 +326,24 @@ If $blocking is true, lock_guard will be blocked until getting a lock. Otherwise
 
 =back
 
+=head1 Variables
+
+=over 4
+
+=item B<$WAIT_QUEUE>
+
+Default: 0
+
+If set to 1, Use the Redis BLPOP command to wait for unlocking instead of periodical polling.
+
+=item B<$WARN_LOCK_TIME_THRESHOLD>
+
+Default: 0
+
+If set to number over 0, put a warnings message to stderr when a lock guard unlocked spent over that seconds.
+
+=back
+
 =head1 LICENSE
 
 Copyright (C) FUJIWARA Shunichiro.
