@@ -17,6 +17,7 @@ our $DEFAULT_EXPIRES      = 86400;
 our $RETRY_INTERVAL       = 0.5;
 our $BLOCKING_KEY_POSTFIX = ":wait";
 our $WAIT_QUEUE           = 0;
+our $WARN_LOCK_TIME_THRESHOLD = 0;
 
 use constant {
     EXIT_CODE_ERROR => 111,
@@ -89,9 +90,17 @@ sub lock_guard {
         wait    => $wait,
         expires => defined $expires ? $expires : $DEFAULT_EXPIRES,
     };
+    my $start = [ Time::HiRes::gettimeofday ];
     my $token = try_get_lock($redis, $opt, $key)
         or return;
+
     return Guard::guard {
+        my $elapsed = Time::HiRes::tv_interval($start);
+        if ($opt->{expires} < $elapsed) {
+            warnf "guard(token:%s) seems to be already expired. elasped %s sec", $token, $elapsed;
+        } elsif (0 < $WARN_LOCK_TIME_THRESHOLD && $WARN_LOCK_TIME_THRESHOLD < $elapsed) {
+            warnf "guard(token:%s) elasped %s sec", $token, $elapsed;
+        }
         release_lock($redis, $opt, $key, $token);
     };
 }
@@ -329,4 +338,3 @@ it under the same terms as Perl itself.
 FUJIWARA Shunichiro E<lt>fujiwara.shunichiro@gmail.comE<gt>
 
 =cut
-
