@@ -12,7 +12,7 @@ use Carp;
 use Digest::SHA qw/ sha1_hex /;
 use Guard ();
 
-our $VERSION                  = "0.13";
+our $VERSION                  = "0.14";
 our $DEFAULT_EXPIRES          = 86400;
 our $RETRY_INTERVAL           = 0.5;
 our $BLOCKING_KEY_POSTFIX     = ":wait";
