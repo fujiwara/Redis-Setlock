@@ -9,8 +9,8 @@ jobs:
     strategy:
       matrix:
         perl:
-          - "5.32.0"
-          - "5.12.1"
+          - "5.40.0"
+          - "5.16.1"
     name: Perl ${{ matrix.perl }}
     steps:
       - run: |
