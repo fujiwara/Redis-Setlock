@@ -10,7 +10,7 @@ jobs:
       matrix:
         perl:
           - "5.40.0"
-          - "5.12.1"
+          - "5.16.1"
     name: Perl ${{ matrix.perl }}
     steps:
       - run: |
